@@ -1,0 +1,30 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    Vim\ErrorTracking\:
+        resource: '../../*'
+        exclude: '../../{DependencyInjection}'
+
+    Vim\ErrorTracking\Controller\:
+        resource: '../../Controller'
+        tags: [ 'controller.service_arguments' ]
+
+    Symfony\Component\HttpClient\HttpClient: ~
+
+    http_client.error_tracking:
+        class: Symfony\Contracts\HttpClient\HttpClientInterface
+        factory: ['@Symfony\Component\HttpClient\HttpClient', 'create']
+        arguments:
+            $defaultOptions:
+                timeout: 5
+
+    Vim\ErrorTracking\Handler\MonologHandler:
+        arguments:
+            $env: '%kernel.environment%'
+            $client: '@http_client.error_tracking'
+
+    Vim\ErrorTracking\Service\UnexpectedErrorLogService:
+        arguments:
+            $path: '%kernel.project_dir%/var'
