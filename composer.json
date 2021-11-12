@@ -1,6 +1,6 @@
 {
   "name": "vim/symfony-error-tracking",
-  "version" : "1.0.0",
+  "version" : "1.0.1",
   "type": "symfony-bundle",
   "keywords": [
     "symfony-error-tracking",
@@ -13,8 +13,8 @@
     "symfony/dependency-injection": "^5",
     "symfony/config": "^5",
     "symfony/http-client": "^5",
-    "symfony/monolog-bundle": "^3.7",
-    "vim/symfony-api": "^1"
+    "symfony/monolog-bundle": "^3",
+    "vim/symfony-api": "^1|^2"
   },
   "autoload": {
     "psr-4": {
