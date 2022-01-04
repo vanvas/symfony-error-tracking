@@ -1,20 +1,21 @@
 {
   "name": "vim/symfony-error-tracking",
-  "version" : "1.0.1",
+  "version" : "1.0.2",
   "type": "symfony-bundle",
   "keywords": [
     "symfony-error-tracking",
     "symfony 5",
+    "symfony 6",
     "php 8"
   ],
   "license": "proprietary",
   "require": {
-    "php": ">=8.0",
-    "symfony/dependency-injection": "^5",
-    "symfony/config": "^5",
-    "symfony/http-client": "^5",
-    "symfony/monolog-bundle": "^3",
-    "vim/symfony-api": "^1|^2"
+    "php": ">=8",
+    "symfony/dependency-injection": "^5|^6",
+    "symfony/config": "^5|^6",
+    "symfony/http-client": "^5|^6",
+    "symfony/monolog-bundle": "*",
+    "vim/symfony-api": "*"
   },
   "autoload": {
     "psr-4": {
