@@ -9,6 +9,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Vim\Api\Attribute\Flush;
 use Vim\Api\Attribute\Paginate;
 use Vim\Api\Attribute\Resource;
+use Vim\Api\Attribute\Schema\Schema;
+use Vim\Api\Attribute\Groups;
 use Vim\ErrorTracking\Entity\Error;
 use Vim\ErrorTracking\Repository\ErrorRepository;
 use Vim\ErrorTracking\Service\UnexpectedErrorLogService;
@@ -68,7 +70,6 @@ class ErrorController
     #[Paginate]
     #[Filter\DateFrom('createdAt', 'createdAtFrom')]
     #[Filter\DateTo('createdAt', 'createdAtTo')]
-    #[Filter\Strict('hash')]
     #[Filter\Strict('env')]
     #[Filter\Strict('process')]
     #[Filter\Like('level')]
@@ -76,11 +77,15 @@ class ErrorController
     #[Filter\Like('trace')]
     #[Filter\Like('file')]
     #[Filter\Like('namespace')]
+    #[Schema(Error::class)]
+    #[Groups([Error::GROUP_LIST])]
     public function index(): void
     {
     }
 
     #[Resource('error')]
+    #[Schema(Error::class)]
+    #[Groups([Error::GROUP_VIEW])]
     public function view(Error $error): Error
     {
         return $error;

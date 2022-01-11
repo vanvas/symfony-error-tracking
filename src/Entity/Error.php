@@ -4,7 +4,10 @@ declare(strict_types=1);
 namespace Vim\ErrorTracking\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Vim\Api\Attribute\Schema\Type\CustomType;
 use Vim\ErrorTracking\Repository\ErrorRepository;
+use Vim\Api\Attribute\Schema\Type\ArrayType;
+use JMS\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass=ErrorRepository::class)
@@ -15,12 +18,22 @@ use Vim\ErrorTracking\Repository\ErrorRepository;
  */
 class Error
 {
+    public const GROUP_LIST = 'list';
+    public const GROUP_VIEW = 'view';
+    
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
+    #[Groups([self::GROUP_VIEW, self::GROUP_LIST])]
     private ?int $id = null;
+
+    /**
+     * @ORM\Column(type="datetime_immutable", nullable=true)
+     */
+    #[Groups([self::GROUP_VIEW, self::GROUP_LIST])]
+    private ?\DateTimeImmutable $date = null;
 
     /**
      * @ORM\Column(type="string", length=32)
@@ -30,72 +43,82 @@ class Error
     /**
      * @ORM\Column(type="integer", options={"default":"0"}, nullable=true)
      */
+    #[Groups([self::GROUP_VIEW, self::GROUP_LIST])]
     private ?int $count = null;
 
     /**
      * @ORM\Column(type="string", length=20, nullable=true)
      */
+    #[Groups([self::GROUP_VIEW, self::GROUP_LIST])]
     private ?string $level = null;
 
     /**
-     * @ORM\Column(type="string", length=5, nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private ?string $env = null;
+    #[Groups([self::GROUP_VIEW, self::GROUP_LIST])]
+    private ?string $namespace = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
+    #[Groups([self::GROUP_VIEW, self::GROUP_LIST])]
     private ?string $message = null;
-
-    /**
-     * @ORM\Column(type="string", length=64, nullable=true)
-     */
-    private ?string $process = null;
-
-    /**
-     * @ORM\Column(type="datetime_immutable", nullable=true)
-     */
-    private ?\DateTimeImmutable $date = null;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
+    #[Groups([self::GROUP_VIEW, self::GROUP_LIST])]
     private ?int $code = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[Groups([self::GROUP_VIEW, self::GROUP_LIST])]
     private ?string $file = null;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
+    #[Groups([self::GROUP_VIEW, self::GROUP_LIST])]
     private ?int $line = null;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private ?string $namespace = null;
 
     /**
      * @ORM\Column(type="datetime_immutable")
      */
+    #[Groups([self::GROUP_VIEW, self::GROUP_LIST])]
     private ?\DateTimeImmutable $createdAt = null;
 
     /**
      * @ORM\Column(type="datetime_immutable")
      */
+    #[Groups([self::GROUP_VIEW, self::GROUP_LIST])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
+    #[Groups([self::GROUP_VIEW])]
+    #[CustomType('code')]
     private ?string $trace = null;
 
     /**
      * @ORM\Column(type="array", nullable=true)
      */
+    #[ArrayType]
+    #[Groups([self::GROUP_VIEW])]
     private ?array $server = [];
+
+    /**
+     * @ORM\Column(type="string", length=5, nullable=true)
+     */
+    #[Groups([self::GROUP_VIEW, self::GROUP_LIST])]
+    private ?string $env = null;
+
+    /**
+     * @ORM\Column(type="string", length=64, nullable=true)
+     */
+    #[Groups([self::GROUP_VIEW, self::GROUP_LIST])]
+    private ?string $process = null;
 
     public function getId(): ?int
     {
