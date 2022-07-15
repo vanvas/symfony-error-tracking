@@ -30,7 +30,13 @@ class MonologHandler extends AbstractProcessingHandler
     protected function write(LogRecord $record): void
     {
         $level = \strtolower($record->level->toPsrLogLevel());
-        $message = $this->extractMessageFromTheRecord($record);
+        try {
+            $message = $this->extractMessageFromTheRecord($record);
+        } catch (\Throwable $throwable) {
+            $this->logService->logThrowable($exception);
+            $message = $record->message;
+        }
+        
         $throwable = $this->extractThrowableFromTheRecord($record);
         $namespace = $throwable ? \get_class($throwable) : null;
         $code = $throwable?->getCode();
@@ -84,7 +90,9 @@ class MonologHandler extends AbstractProcessingHandler
         $search = $matches[0] ?? [];
         $replace = \array_map(
             function (string $val) use ($record) {
-                return $record->context[$val] ?? '['.$val.']';
+                $result = $record->context[$val] ?? '['.$val.']';
+
+                $result = \is_scalar($result) ? $result : \json_encode($result);
             },
             $matches[1] ?? []
         );
