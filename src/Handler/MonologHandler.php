@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Vim\ErrorTracking\Handler;
 
 use Monolog\Handler\AbstractProcessingHandler;
+use Monolog\LogRecord;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Vim\ErrorTracking\Helper\ProcessHelper;
 use Vim\ErrorTracking\Service\UnexpectedErrorLogService;
@@ -26,29 +27,29 @@ class MonologHandler extends AbstractProcessingHandler
     /**
      * {@inheritdoc}
      */
-    protected function write(array $record): void
+    protected function write(LogRecord $record): void
     {
-        $message = $this->getMessageFromRecord($record);
-        $level = $record['level_name'];
-        $exception = $this->getExceptionFromRecord($record);
-        $namespaceNamespace = $exception ? get_class($exception) : null;
-        $code = $exception ? $exception->getCode() : null;
+        $level = \strtolower($record->level->toPsrLogLevel());
+        $message = $this->extractMessageFromTheRecord($record);
+        $throwable = $this->extractThrowableFromTheRecord($record);
+        $namespace = $throwable ? \get_class($throwable) : null;
+        $code = $throwable?->getCode();
 
-        if (in_array(strtolower($level), array_map('strtolower', $this->ignoredLevels))) {
+        if (\in_array(strtolower($level), \array_map('strtolower', $this->ignoredLevels))) {
             return;
         }
 
         foreach ($this->ignoredMessages as $ignoredMessagePattern) {
-            if (preg_match($ignoredMessagePattern, $message)) {
+            if (\preg_match($ignoredMessagePattern, $message)) {
                 return;
             }
         }
 
-        if (in_array($namespaceNamespace, $this->ignoredExceptions)) {
+        if (\in_array($namespace, $this->ignoredExceptions)) {
             return;
         }
 
-        if (in_array($code, $this->ignoredCodes)) {
+        if (\in_array($code, $this->ignoredCodes)) {
             return;
         }
 
@@ -61,12 +62,12 @@ class MonologHandler extends AbstractProcessingHandler
             'date' => isset($record['datetime']) ? $record['datetime']->format(\DATE_ATOM) : null,
         ];
 
-        if ($exception) {
-            $content['trace'] = $exception->getTraceAsString();
+        if ($throwable) {
+            $content['trace'] = $throwable->getTraceAsString();
             $content['code'] = $code;
-            $content['file'] = $exception->getFile();
-            $content['line'] = $exception->getLine();
-            $content['namespace'] = $namespaceNamespace;
+            $content['file'] = $throwable->getFile();
+            $content['line'] = $throwable->getLine();
+            $content['namespace'] = $namespace;
         }
 
         try {
@@ -76,33 +77,25 @@ class MonologHandler extends AbstractProcessingHandler
         }
     }
 
-    private function getMessageFromRecord(array $record): string
+    private function extractMessageFromTheRecord(LogRecord $record): string
     {
-        $message = $record['message'];
-        preg_match_all('/{(.*?)}/', $message, $matches);
+        $message = $record->message;
+        \preg_match_all('/{(.*?)}/', $message, $matches);
         $search = $matches[0] ?? [];
-        $replace = array_map(
+        $replace = \array_map(
             function (string $val) use ($record) {
-                return $record['context'][$val] ?? '['.$val.']';
+                return $record->context[$val] ?? '['.$val.']';
             },
             $matches[1] ?? []
         );
 
-        return str_replace($search, $replace, $message);
+        return \str_replace($search, $replace, $message);
     }
 
-    private function getExceptionFromRecord(array $record): ?\Throwable
+    private function extractThrowableFromTheRecord(LogRecord $record): ?\Throwable
     {
-        $context = $record['context'] ?? [];
-        /** @var \Throwable|null $exception */
-        $exception = $context['exception'] ?? null;
-        if (!$exception instanceof \Throwable) {
-            $exception = $context['throwable'] ?? null;
-            if (!$exception instanceof \Throwable) {
-                $exception = null;
-            }
-        }
+        $throwable = $record->context['exception'] ?? $record->context['throwable'] ?? null;
 
-        return $exception;
+        return $throwable instanceof \Throwable ? $throwable : null;
     }
 }
